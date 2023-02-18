@@ -1,5 +1,7 @@
 use core::arch::asm;
 
+use crate::io::print_char;
+
 pub struct StringWrapper {
     ptr: *const u8,
     len: usize,
@@ -23,5 +25,13 @@ impl StringWrapper {
             in("dx") self.ptr as u16,
             in("cx") self.len
         )
+    }
+
+    pub unsafe fn print_v2(&self) {
+        for offset in 0..1 {
+            let char = *self.ptr.offset(1);
+            print_char(char as char);
+        }
+        // print_char(*self.ptr.offset(1) as char)
     }
 }

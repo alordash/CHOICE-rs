@@ -26,9 +26,10 @@ pub unsafe extern "C" fn start() {
     print_char('\n');
     print_char('\n');
     print_char('\n');
-    print_char((args_count + 48) as char);
+    // print_char((args_count + 48) as char);
     print_char('\n');
-    args.print();
+    args.print_v2();
+    // args.print();
 
     // print_char((argv_ptr + 48) as u8 as char);
 
