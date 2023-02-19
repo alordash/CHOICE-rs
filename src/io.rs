@@ -24,8 +24,8 @@ pub unsafe fn get_args_str(args_count: u8) -> StringWrapper {
 
 pub unsafe fn print_char(c: char) {
     asm!(
-        "mov ah, 2",
         "int 21h",
+        in("ah") 2_u8,
         in("dl") c as u8
     );
 }
