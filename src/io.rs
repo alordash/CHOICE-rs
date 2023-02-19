@@ -29,3 +29,22 @@ pub unsafe fn print_char(c: char) {
         in("dl") c as u8
     );
 }
+
+pub unsafe fn print_number(mut num: i32) {
+    if num.is_negative() {
+        print_char('-');
+        num = -num;
+    }
+    let mut len = 0;
+    while num > 0 {
+        let rem = num % 10;
+        asm!("push {}", in(reg) rem);
+        num = num / 10;
+        len += 1;
+    }
+    for _ in 0..len {
+        let digit: i32;
+        asm!("pop {}", out(reg) digit);
+        print_char((digit + '0' as i32) as u8 as char);
+    }
+}

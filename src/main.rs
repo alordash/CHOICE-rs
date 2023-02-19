@@ -7,7 +7,7 @@ mod string;
 
 use core::arch::asm;
 
-use io::{get_args_count, print_char, get_args_str};
+use io::{get_args_count, get_args_str, print_char, print_number};
 
 unsafe fn exit_with_code(exit_code: u8) {
     asm!(
@@ -21,6 +21,9 @@ unsafe fn exit_with_code(exit_code: u8) {
 pub unsafe extern "C" fn start() {
     let args_count = get_args_count();
     let args = get_args_str(args_count);
+
+    print_number(123868);
+    print_char('\n');
 
     print_char((args_count + 48) as char);
     print_char('\n');
