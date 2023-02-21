@@ -1,8 +1,10 @@
 use core::panic::PanicInfo;
 
+use crate::io::print_str;
+
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    // dos::print("\nPanic!$".as_ptr());
-    // dos::exit();
+    // unsafe { print_str(_info.payload().downcast_ref::<&str>().unwrap()) };
+    unsafe { print_str("PANIC!!!$") };
     loop {}
 }

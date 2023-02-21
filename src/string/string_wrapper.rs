@@ -20,15 +20,15 @@ impl StringWrapper {
             "mov ah, 40h",
             "mov bx, 1",
             "int 21h",
-            in("cx") self.len - 1,
-            in("dx") self.ptr as u32 + 1,
+            in("cx") self.len,
+            in("dx") self.ptr as u32,
         )
     }
 
     pub unsafe fn print_v2(&self) {
         for offset in 1..self.len {
             let char = *self.ptr.add(offset);
-            print_char(char as char);
+            print_char(char);
         }
         // print_char(*self.ptr.offset(1) as char);
         // print_char(*self.ptr.offset(2) as char);
