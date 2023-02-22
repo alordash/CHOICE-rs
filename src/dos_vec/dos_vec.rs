@@ -77,10 +77,7 @@ impl<T> DosVec<T> {
             return;
         }
         unsafe {
-            DOS_ALLOCATOR.dealloc(
-                self.mem_chunk as *mut u8,
-                (&*self.mem_chunk).get_len(),
-            );
+            DOS_ALLOCATOR.dealloc(self.mem_chunk as *mut u8, (&*self.mem_chunk).get_len());
             self.mem_chunk = null_mut();
             self.buf_ptr = null_mut();
             self.reserved_len = 0;
@@ -128,6 +125,15 @@ impl<T> DosVec<T> {
     pub fn is_empty(&self) -> bool {
         self.get_len() == 0
     }
+
+    pub fn find_idx(&self, filter: impl Fn(&T) -> bool) -> Option<usize> {
+        for i in 0..self.get_len() {
+            if filter(&self[i]) {
+                return Some(i);
+            }
+        }
+        None
+    }
 }
 
 impl<T: Copy> DosVec<T> {
@@ -140,17 +146,6 @@ impl<T: Copy> DosVec<T> {
             dos_vec.len = len;
             dos_vec
         }
-    }
-}
-
-impl<T: Clone> Clone for DosVec<T> {
-    fn clone(&self) -> Self {
-        let mut new_vec = DosVec::<T>::new(self.reserved_len);
-        new_vec.len = self.len;
-        for i in 0..self.len {
-            unsafe { *new_vec.buf_ptr.add(i) = (*self.buf_ptr.add(i)).clone() };
-        }
-        new_vec
     }
 }
 
@@ -176,18 +171,6 @@ impl<T: Clone> DosVec<T> {
                 self.remove_at(i);
                 len -= 1;
             }
-        }
-    }
-}
-
-impl<T> Drop for DosVec<T> {
-    fn drop(&mut self) {
-        unsafe {
-            // debug("Dropping vec, ptr: ", self.mem_chunk as i32);
-            if self.mem_chunk == null_mut() {
-                return
-            }
-            self.clear();
         }
     }
 }

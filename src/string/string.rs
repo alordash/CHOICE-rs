@@ -4,7 +4,7 @@ use core::ops::{Deref, DerefMut};
 use crate::dos_vec::dos_vec::DosVec;
 use crate::io::{debug, newline, print_str};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct String {
     vec: DosVec<u8>,
 }

@@ -36,26 +36,28 @@ pub unsafe extern "C" fn start() {
     args.print();
     print_str("\"\n");
 
-    // let mut words_split = args.split(|c: u8| c == ',' as u8 || c == ' ' as u8);
-    // // debug("Words split len before: ", words_split.get_len() as i32);
+    let mut words_split = args.split(|c: u8| c == ',' as u8 || c == ' ' as u8);
+    for i in 0..words_split.get_len() {
+        words_split[i].truncate(|c: u8| c == ' ' as u8 || c == ',' as u8);
+    }
+    words_split.remain_filtered(|str: &String| !str.is_empty());
 
-    // for i in 0..words_split.get_len() {
-    //     words_split[i].truncate(|c: u8| c == ' ' as u8 || c == ',' as u8);
-    // }
-
-    // words_split.remain_filtered(|str: &String| !str.is_empty());
-    // // debug("Words split len after:  ", words_split.get_len() as i32);
-
-    // print_str("Arguments split: \n");
-
-    // for i in 0..words_split.get_len() {
-    //     words_split[i].print();
-    //     newline();
-    // }
+    print_str("Arguments split: \n");
+    for i in 0..words_split.get_len() {
+        words_split[i].print();
+        newline();
+    }
 
     let read_str = read_string();
-    print_str("Read str:\n");
-    read_str.print();
+    
+    let maybe_idx = words_split.find_idx(move |str| str == &read_str);
+    if let Some(idx) = maybe_idx {
+        print_str("Entered option #");
+        print_num(idx as i32);
+        newline();
+    } else {
+        println("Wrong option");
+    }
 
     exit_with_code(args_len);
 }
