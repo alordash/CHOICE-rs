@@ -74,12 +74,12 @@ impl String {
         }
     }
 
-    pub fn split(&self, spliterator: u8) -> DosVec<String> {
+    pub fn split(&self, spliterator: impl Fn(u8) -> bool) -> DosVec<String> {
         let mut strs = DosVec::<String>::new(1);
         let mut start = 0;
         for i in 0..self.get_len() {
             let c = self[i];
-            if c == spliterator {
+            if spliterator(c) {
                 unsafe { strs.push(String::from_raw_parts(self.buf_ptr.add(start), i + 1 - start)) };
                 start = i + 1;
             }
@@ -94,4 +94,6 @@ impl String {
         }
         return strs;
     }
+
+
 }
