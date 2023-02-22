@@ -42,7 +42,7 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
 
         println();
         let required_size = size + size_of::<MemChunk>();
-        debug("Required size: ", required_size as i32);
+        // debug("Required size: ", required_size as i32);
         debug("Begin: ", mem_begin_ptr as i32);
 
         let suitable_mem_ptr = loop {
@@ -53,7 +53,7 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
             if mem_chunk.get_len() == 0 {
                 let left_space = MEM_SIZE_BYTES as isize - mem_ptr.offset_from(mem_begin_ptr) as isize - required_size as isize;
                 debug("Found empty chunk: ", mem_ptr as i32);
-                debug("Left space: ", left_space as i32);
+                // debug("Left space: ", left_space as i32);
                 if left_space >= 0 {
                     break Some(mem_ptr);
                 }
@@ -92,8 +92,6 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     }
 
     pub unsafe fn realloc(&mut self, ptr: *mut u8, size: usize, new_size: usize) -> *mut u8 {
-        debug("Reallocing from: ", size as i32);
-        debug("to: ", new_size as i32);
         self.dealloc(ptr, size);
         let old_size = size;
 

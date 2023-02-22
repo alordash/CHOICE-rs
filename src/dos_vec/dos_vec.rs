@@ -1,4 +1,4 @@
-use core::mem::size_of;
+use core::{mem::size_of, ptr::null_mut};
 
 use crate::{
     io::debug,
@@ -9,10 +9,10 @@ use crate::{
 pub const GROW_COUNT: usize = 10;
 
 pub struct DosVec<T> {
-    mem_chunk: *mut MemChunk,
-    buf_ptr: *mut T,
-    reserved_len: usize,
-    len: usize,
+    pub mem_chunk: *mut MemChunk,
+    pub buf_ptr: *mut T,
+    pub reserved_len: usize,
+    pub len: usize,
 }
 
 impl<T> DosVec<T> {
@@ -57,12 +57,27 @@ impl<T> DosVec<T> {
         self.buf_ptr = new_ptr.add(size_of::<MemChunk>()) as *mut T;
         self.reserved_len = new_reserved_len;
     }
+}
 
+impl<T> DosVec<T> {
     pub fn new(reserved_len: usize) -> Self {
         unsafe {
             let size = reserved_len * size_of::<T>();
             let ptr = DOS_ALLOCATOR.alloc(size);
             DosVec::create_from_ptr(reserved_len, ptr)
+        }
+    }
+
+    pub fn clear(&mut self) {
+        unsafe {
+            DOS_ALLOCATOR.dealloc(
+                self.mem_chunk as *mut u8,
+                self.reserved_len * size_of::<T>(),
+            );
+            self.mem_chunk = null_mut();
+            self.buf_ptr = null_mut();
+            self.reserved_len = 0;
+            self.len = 0;
         }
     }
 

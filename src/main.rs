@@ -30,33 +30,54 @@ pub unsafe extern "C" fn start() {
     // args.print();
     // print_str("\"\n");
 
-    let mut dos_vec = DosVec::<u8>::new(5);
-    dos_vec.push('h' as u8);
-    dos_vec.push('e' as u8);
-    dos_vec.push('l' as u8);
-    dos_vec.push('l' as u8);
+    let mut dos_vec1 = DosVec::<u8>::new(5);
+    dos_vec1.push('h' as u8);
+    dos_vec1.push('e' as u8);
+    dos_vec1.push('l' as u8);
+    dos_vec1.push('l' as u8);
     let mut dos_vec2 = DosVec::<u8>::new(0);
-    dos_vec.push('o' as u8);
-    dos_vec.push(' ' as u8);
-    dos_vec.push('!' as u8);
+    dos_vec1.push('o' as u8);
+    dos_vec1.push(' ' as u8);
+    dos_vec1.push('!' as u8);
 
     dos_vec2.push('b' as u8);
     dos_vec2.push('y' as u8);
     dos_vec2.push('e' as u8);
     dos_vec2.push('!' as u8);
 
-    print_str("vec len: ");
-    print_num(dos_vec.get_len() as i32);
-    println();
+    debug("vec1 ptr:", dos_vec1.mem_chunk as i32);
+    // dos_vec1.clear();
+    
+    let mut dos_vec3 = DosVec::<u8>::new(3);
+    dos_vec3.push('W' as u8);
+    dos_vec3.push('T' as u8);
+    dos_vec3.push('F' as u8);
 
-    let dv_len = dos_vec2.get_len();
+    let dv_len1 = dos_vec1.get_len();
 
-    for _ in 0..dv_len {
-        let c = *dos_vec2.pop().unwrap_unchecked();
+    for _ in 0..dv_len1 {
+        let c = *dos_vec1.pop().unwrap_unchecked();
         print_char(c);
     }
 
-    print_str("\nDone going through vec!\n");
+    print_str("\nDone going through vec1!\n");
+
+    let dv_len3 = dos_vec3.get_len();
+
+    for _ in 0..dv_len3 {
+        let c = *dos_vec3.pop().unwrap_unchecked();
+        print_char(c);
+    }
+
+    print_str("\nDone going through vec3!\n");
+
+    debug("vec1 len: ", dos_vec1.len as i32);
+    debug("vec2 len: ", dos_vec2.len as i32);
+    debug("vec3 len: ", dos_vec3.len as i32);
+    
+    debug("vec1 ptr: ", dos_vec1.mem_chunk as i32);
+    debug("vec2 ptr: ", dos_vec2.mem_chunk as i32);
+    debug("vec3 ptr: ", dos_vec3.mem_chunk as i32);
 
     exit_with_code(args_len);
 }
