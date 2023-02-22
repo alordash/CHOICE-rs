@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::string::string_wrapper::StringWrapper;
+use crate::string::{string_wrapper::StringWrapper, string::String};
 
 pub unsafe fn get_args_len() -> u8 {
     let args_count: u8;
@@ -12,14 +12,14 @@ pub unsafe fn get_args_len() -> u8 {
     args_count
 }
 
-pub unsafe fn get_args_str(args_count: u8) -> StringWrapper {
+pub unsafe fn get_args_str(args_count: u8) -> String {
     let argv_ptr: u8;
     asm!(
         "xor cx, cx",
         "lea cx, byte ptr ds:[81h]",
         out("cl") argv_ptr
     );
-    StringWrapper::from_raw_parts(argv_ptr as *const u8, args_count as usize)
+    String::from_raw_parts(argv_ptr as *const u8, args_count as usize)
 }
 
 pub unsafe fn print_char(c: u8) {

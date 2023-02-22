@@ -1,7 +1,6 @@
 use core::{mem::size_of, ptr::null_mut};
 
 use crate::{
-    io::debug,
     memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk},
     panic::panic_exit,
 };
@@ -13,12 +12,6 @@ pub struct DosVec<T> {
     pub buf_ptr: *mut T,
     pub reserved_len: usize,
     pub len: usize,
-}
-
-impl<T> DosVec<T> {
-    pub fn get_len(&self) -> usize {
-        self.len
-    }
 }
 
 impl<T> DosVec<T> {
@@ -59,12 +52,23 @@ impl<T> DosVec<T> {
     }
 }
 
-impl<T> DosVec<T> {
+impl<T: Copy> DosVec<T> {
     pub fn new(reserved_len: usize) -> Self {
         unsafe {
             let size = reserved_len * size_of::<T>();
             let ptr = DOS_ALLOCATOR.alloc(size);
             DosVec::create_from_ptr(reserved_len, ptr)
+        }
+    }
+
+    pub fn from_raw_parts(begin: *const T, len: usize) -> Self {
+        unsafe {
+            let mut dos_vec = DosVec::new(len);
+            for i in 0..len {
+                dos_vec[i] = *begin.add(i);
+            }
+            dos_vec.len = len;
+            dos_vec
         }
     }
 
@@ -111,5 +115,9 @@ impl<T> DosVec<T> {
             let value = &*self.buf_ptr;
             Some(value)
         }
+    }
+
+    pub fn get_len(&self) -> usize {
+        self.len
     }
 }

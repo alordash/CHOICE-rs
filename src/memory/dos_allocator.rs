@@ -1,8 +1,7 @@
-use core::cell::UnsafeCell;
 use core::mem::size_of;
 use core::ptr::null_mut;
 
-use crate::{io::{debug, print_num, print_str, println}, panic::panic_exit};
+use crate::{io::{debug, println}, panic::panic_exit};
 
 use super::memory_chunk::MemChunk;
 
