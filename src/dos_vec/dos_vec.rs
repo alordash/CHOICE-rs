@@ -34,7 +34,7 @@ impl<T> DosVec<T> {
     }
 
     pub unsafe fn grow(&mut self, extra_size: usize) {
-        println("Starting growing");
+        // println("Starting growing");
         let new_reserved_len = self.reserved_len + extra_size;
         let size_of_t = size_of::<T>();
 
@@ -58,7 +58,7 @@ impl<T> DosVec<T> {
         self.mem_chunk = new_ptr as *mut MemChunk;
         self.buf_ptr = new_ptr.add(size_of::<MemChunk>()) as *mut T;
         self.reserved_len = new_reserved_len;
-        println("Done growing");
+        // println("Done growing");
     }
 }
 
@@ -112,6 +112,22 @@ impl<T> DosVec<T> {
     pub fn get_len(&self) -> usize {
         self.len
     }
+
+    pub fn push(&mut self, value: T) {
+        unsafe {
+            if self.len >= self.reserved_len {
+                // println("Not enough space, growing");
+                self.grow(GROW_COUNT);
+            }
+
+            *self.buf_ptr.add(self.len) = value;
+            self.len += 1;
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.get_len() == 0
+    }
 }
 
 impl<T: Copy> DosVec<T> {
@@ -138,16 +154,28 @@ impl<T: Clone> Clone for DosVec<T> {
     }
 }
 
-impl<T> DosVec<T> {
-    pub fn push(&mut self, value: T) {
-        unsafe {
-            if self.len >= self.reserved_len {
-                println("Not enough space, growing");
-                self.grow(GROW_COUNT);
-            }
+impl<T: Clone> DosVec<T> {
+    pub fn remove_at(&mut self, remove_idx: usize) {
+        if remove_idx >= self.len {
+            return;
+        }
+        for i in remove_idx..self.get_len() {
+            self[i] = self[i + 1].clone();
+        }
+        self.len -= 1;
+    }
 
-            *self.buf_ptr.add(self.len) = value;
-            self.len += 1;
+    pub fn remain_filtered(&mut self, filter: impl Fn(&T) -> bool) {
+        let mut i = 0;
+        let mut len = self.get_len();
+        while i < len {
+            let v = &self[i];
+            if filter(v) {
+                i += 1;
+            } else {
+                self.remove_at(i);
+                len -= 1;
+            }
         }
     }
 }

@@ -96,3 +96,29 @@ pub fn println_bool(f: bool) {
         newline();
     }
 }
+
+pub fn read_char() -> u8 {
+    unsafe {
+        let c: u8 = 0;
+        asm!(
+            "int 21h",
+            in("ah") 0x3f_u8,
+            in("bx") 0x00,
+            in("cx") 0x01,
+            in("dx") &c as *const u8 as i32
+        );
+        return c;
+    }
+}
+
+pub fn read_string() -> String {
+    let mut str = String::empty();
+    loop {
+        let c = read_char();
+        if c == '\n' as u8 || c == '\r' as u8 {
+            break;
+        }
+        str.push(c);
+    }
+    return str;
+}

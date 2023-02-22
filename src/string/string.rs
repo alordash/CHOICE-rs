@@ -32,6 +32,10 @@ impl DerefMut for String {
 }
 
 impl String {
+    pub fn empty() -> Self {
+        String::instantiate(0)
+    }
+
     pub fn from_str(s: &str) -> Self {
         let len = s.len();
         let s_ptr = s.as_ptr();
@@ -66,10 +70,10 @@ impl String {
         unsafe {
             asm!(
                 "int 21h",
-                in("bx") 0x01,
                 in("ah") 0x40_u8,
+                in("bx") 0x01,
                 in("cx") self.vec.get_len(),
-                in("dx") self.vec.buf_ptr as i32,
+                in("dx") self.vec.buf_ptr as u32,
             )
         }
     }
