@@ -2,7 +2,7 @@ use core::arch::asm;
 use core::ops::{Deref, DerefMut};
 
 use crate::dos_vec::dos_vec::DosVec;
-use crate::io::{newline, print_str, debug};
+use crate::io::{debug, newline, print_str};
 
 #[derive(Clone)]
 pub struct String {
@@ -42,7 +42,7 @@ impl String {
             }
         }
         string.len = len;
-        
+
         return string;
     }
 
@@ -80,7 +80,12 @@ impl String {
         for i in 0..self.get_len() {
             let c = self[i];
             if spliterator(c) {
-                unsafe { strs.push(String::from_raw_parts(self.buf_ptr.add(start), i + 1 - start)) };
+                unsafe {
+                    strs.push(String::from_raw_parts(
+                        self.buf_ptr.add(start),
+                        i + 1 - start,
+                    ))
+                };
                 start = i + 1;
             }
         }
@@ -95,5 +100,37 @@ impl String {
         return strs;
     }
 
+    pub fn truncate(&mut self, truncator: impl Fn(u8) -> bool) {
+        let len = self.get_len();
+        let mut start = 0;
+        let mut end = len;
+        for i in 0..len {
+            let c = self[i];
+            if truncator(c) {
+                start += 1;
+            } else {
+                break;
+            }
+        }
 
+        let mut i = len;
+        while i > start {
+            i -= 1;
+            let c = self[i];
+            if truncator(c) {
+                end = i;
+                break;
+            }
+        }
+
+        if end > start {
+            unsafe {
+                *self = String::from_raw_parts(self.buf_ptr.add(start), end - start);
+            }
+        } else {
+            unsafe {
+                *self = String::instantiate(0);
+            }
+        }
+    }
 }

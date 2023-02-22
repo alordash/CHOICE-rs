@@ -24,40 +24,31 @@ fn foo(f: impl Fn(i32) -> i32) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn start() {
     DOS_ALLOCATOR.zero_memory();
-    // debug("DOS_ALLOC[0]: ", DOS_ALLOCATOR.memory[0] as i32);
 
-    let words = String::from_str("one, two, word, another, end");
-    let words_split = words.split(|c: u8| c == ',' as u8 || c == 'o' as u8);
 
-    print_str("Words: ");
-    words.print();
+    let args_len = get_args_len();
+    let args = get_args_str(args_len);
+
+    print_str("Args len: ");
+    print_num(args_len as i32);
     newline();
 
+    print_str("Arguments: \"");
+    args.print();
+    print_str("\"\n");
+
+    let words = String::from_str("a, a");
+    let mut words_split = words.split(|c: u8| c == ',' as u8 || c == ' ' as u8);
+
+    // print_str("Arguments split: \n");
+
+    debug("Words split len: ", words_split.get_len() as i32);
+
     for i in 0..words_split.get_len() {
+        words_split[i].truncate(|c: u8| c == ' ' as u8 || c == ',' as u8);
         words_split[i].print();
         newline();
     }
-
-    fn asd(v: i32) -> i32 {
-        v + 5
-    }
-
-    // let q = |v: i32| v + 66;
-
-    let v = foo(|v: i32| v + 32);
-
-    print_num(v);
-
-    let args_len = get_args_len();
-    // let args = get_args_str(args_len);
-
-    // print_str("Args len: ");
-    // print_num(args_len as i32);
-    // println();
-
-    // print_str("Arguments: \"");
-    // args.print();
-    // print_str("\"\n");
 
     exit_with_code(args_len);
 }
