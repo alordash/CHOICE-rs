@@ -22,15 +22,17 @@ pub unsafe fn get_args_str(args_count: u8) -> String {
     String::from_raw_parts(argv_ptr as *const u8, args_count as usize)
 }
 
-pub unsafe fn print_char(c: u8) {
-    asm!(
-        "int 21h",
-        in("ah") 2_u8,
-        in("dl") c as u8
-    );
+pub fn print_char(c: u8) {
+    unsafe {
+        asm!(
+            "int 21h",
+            in("ah") 2_u8,
+            in("dl") c as u8
+        );
+    }
 }
 
-pub unsafe fn print_num(mut num: i32) {
+pub fn print_num(mut num: i32) {
     if num == 0 {
         print_char('0' as u8);
         return;
@@ -42,33 +44,55 @@ pub unsafe fn print_num(mut num: i32) {
     let mut len = 0;
     while num > 0 {
         let rem = num % 10;
-        asm!("push {}", in(reg) rem);
+        unsafe { asm!("push {}", in(reg) rem) };
         num = num / 10;
         len += 1;
     }
     for _ in 0..len {
         let digit: i32;
-        asm!("pop {}", out(reg) digit);
+        unsafe { asm!("pop {}", out(reg) digit) };
         print_char((digit + '0' as i32) as u8);
     }
 }
 
-pub unsafe fn print_str(s: &str) {
-    asm!(
-        "int 21h",
-        in("bx") 0x01,
-        in("ah") 0x40_u8,
-        in("cx") s.len(),
-        in("dx") s.as_ptr() as u32,
-    )
+pub fn print_str(s: &str) {
+    unsafe {
+        asm!(
+            "int 21h",
+            in("bx") 0x01,
+            in("ah") 0x40_u8,
+            in("cx") s.len(),
+            in("dx") s.as_ptr() as u32,
+        )
+    }
 }
 
-pub unsafe fn println() {
-    print_char('\n' as u8);
+pub fn newline() {
+    unsafe { print_char('\n' as u8) };
 }
 
-pub unsafe fn debug(s: &str, n: i32) {
-    print_str(s);
-    print_num(n);
-    println();
+pub fn debug(s: &str, n: i32) {
+    unsafe {
+        print_str(s);
+        print_num(n);
+        newline();
+    }
+}
+
+pub fn println(msg: &str) {
+    unsafe {
+        print_str(msg);
+        newline();
+    }
+}
+
+pub fn println_bool(f: bool) {
+    unsafe {
+        if f {
+            print_str("true");
+        } else {
+            print_str("false");
+        }
+        newline();
+    }
 }

@@ -1,4 +1,5 @@
 pub struct MemChunk {
+    occupied: bool,
     len: usize,
     start: *mut u8,
 }
@@ -12,7 +13,15 @@ impl MemChunk {
         self.start
     }
 
-    pub fn new(len: usize, start: *mut u8) -> MemChunk {
-        MemChunk { len, start }
+    pub fn get_occupied(&self) -> bool {
+        self.occupied
+    }
+
+    pub fn new(occupied: bool, len: usize, start: *mut u8) -> MemChunk {
+        MemChunk {
+            occupied,
+            len,
+            start,
+        }
     }
 }

@@ -2,7 +2,7 @@ use core::mem::size_of;
 use core::ptr::null_mut;
 
 use crate::{
-    io::{debug, println},
+    io::{debug, newline, println, print_str, println_bool, print_num},
     panic::panic_exit,
 };
 
@@ -41,15 +41,22 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let mut mem_ptr = mem_begin_ptr.clone();
 
         let required_size = size + size_of::<MemChunk>();
-        // debug("Required size: ", required_size as i32);
+        // debug("Required len: ", size as i32);
         // debug("Begin: ", mem_begin_ptr as i32);
 
         let suitable_mem_ptr = loop {
             let mem_chunk = &*(mem_ptr as *const MemChunk);
-            // debug("Mem ptr: ", mem_ptr as i32);
-            // debug("Len: ", mem_chunk.get_len() as i32);
 
-            if mem_chunk.get_len() == 0 {
+            // print_str("Mem ptr: ");
+            // print_num(mem_ptr as i32);
+            // print_str(", len: ");
+            // print_num(mem_chunk.get_len() as i32);
+            // print_str(", occupied: ");
+            // println_bool(mem_chunk.get_occupied());
+
+            if !mem_chunk.get_occupied()
+                && (mem_chunk.get_len() >= size || mem_chunk.get_len() == 0)
+            {
                 let left_space = MEM_SIZE_BYTES as isize
                     - mem_ptr.offset_from(mem_begin_ptr) as isize
                     - required_size as isize;
@@ -62,6 +69,7 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
             }
             mem_ptr = mem_ptr.add(mem_chunk.get_len() + size_of::<MemChunk>());
             if mem_ptr.offset_from(mem_begin_ptr) >= MEM_SIZE_BYTES as isize {
+                println("Memory run out");
                 return null_mut();
             }
         };
@@ -69,7 +77,10 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
             return null_mut();
         }
         let suitable_mem_ptr = suitable_mem_ptr.unwrap();
-        *(suitable_mem_ptr as *mut MemChunk) = MemChunk::new(size, suitable_mem_ptr);
+        let suitable_mem_chunk = suitable_mem_ptr as *mut MemChunk;
+        let old_size = (&*suitable_mem_chunk).get_len();
+        let result_size = size.max(old_size);
+        *suitable_mem_chunk = MemChunk::new(true, result_size, suitable_mem_ptr);
 
         // debug("Found suitable mem ptr: ", suitable_mem_ptr as i32);
 
@@ -81,7 +92,11 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         if (&*mem_chunk_ptr).get_len() != size {
             panic_exit("ERROR DEALLOCATING: WRONG SIZE", 100);
         }
-        *mem_chunk_ptr = MemChunk::new(0, ptr);
+        *mem_chunk_ptr = MemChunk::new(false, size, null_mut());
+
+        for offset in 0..size {
+            *ptr.add(offset + size_of::<MemChunk>()) = 0;
+        }
     }
 
     pub unsafe fn alloc_zeroed(&mut self, size: usize) -> *mut u8 {
@@ -93,13 +108,18 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     }
 
     pub unsafe fn realloc(&mut self, ptr: *mut u8, size: usize, new_size: usize) -> *mut u8 {
-        self.dealloc(ptr, size);
+        // println("Reallocing...");
         let old_size = size;
 
         let new_ptr = self.alloc(new_size);
+
         for offset in 0..old_size {
-            *(new_ptr.add(offset)) = *ptr.add(offset);
+            *(new_ptr.add(offset + size_of::<MemChunk>())) =
+                *ptr.add(offset + size_of::<MemChunk>());
+            // *ptr.add(offset + size_of::<MemChunk>()) = 0;
         }
+        self.dealloc(ptr, size);
+        // println("Done reallocing.");
         new_ptr
     }
 }

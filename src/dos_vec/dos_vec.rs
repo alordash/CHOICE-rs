@@ -1,11 +1,15 @@
-use core::{mem::size_of, ptr::null_mut};
+use core::{
+    mem::{size_of, ManuallyDrop},
+    ptr::null_mut,
+};
 
 use crate::{
+    io::{debug, newline, print_str, println},
     memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk},
     panic::panic_exit,
 };
 
-pub const GROW_COUNT: usize = 10;
+pub const GROW_COUNT: usize = 20;
 
 pub struct DosVec<T> {
     pub mem_chunk: *mut MemChunk,
@@ -29,10 +33,13 @@ impl<T> DosVec<T> {
         }
     }
 
-    unsafe fn grow(&mut self, extra_size: usize) {
+    pub unsafe fn grow(&mut self, extra_size: usize) {
+        println("Starting growing");
         let new_reserved_len = self.reserved_len + extra_size;
         let size_of_t = size_of::<T>();
 
+        // debug("current reserved_len: ", self.reserved_len as i32);
+        // debug("new     reserved_len: ", new_reserved_len as i32);
         let new_ptr = if self.reserved_len > 0 {
             DOS_ALLOCATOR.realloc(
                 self.mem_chunk as *mut u8,
@@ -46,9 +53,12 @@ impl<T> DosVec<T> {
             panic_exit("NO MEMORY FOR GROWING DOS VEC", 200);
         }
 
+        // debug("Reallocated, new ptr: ", new_ptr as i32);
+        // debug("old ptr:              ", self.mem_chunk as i32);
         self.mem_chunk = new_ptr as *mut MemChunk;
         self.buf_ptr = new_ptr.add(size_of::<MemChunk>()) as *mut T;
         self.reserved_len = new_reserved_len;
+        println("Done growing");
     }
 }
 
@@ -62,26 +72,19 @@ impl<T> DosVec<T> {
     }
 
     pub fn clear(&mut self) {
+        // debug("Clearing vec, len: ", self.len as i32);
+        if self.len <= 0 {
+            return;
+        }
         unsafe {
             DOS_ALLOCATOR.dealloc(
                 self.mem_chunk as *mut u8,
-                self.reserved_len * size_of::<T>(),
+                (&*self.mem_chunk).get_len(),
             );
             self.mem_chunk = null_mut();
             self.buf_ptr = null_mut();
             self.reserved_len = 0;
             self.len = 0;
-        }
-    }
-
-    pub fn push(&mut self, value: T) {
-        unsafe {
-            if self.len >= self.reserved_len {
-                self.grow(GROW_COUNT);
-            }
-
-            *self.buf_ptr.add(self.len) = value;
-            self.len += 1;
         }
     }
 
@@ -120,6 +123,43 @@ impl<T: Copy> DosVec<T> {
             }
             dos_vec.len = len;
             dos_vec
+        }
+    }
+}
+
+impl<T: Clone> Clone for DosVec<T> {
+    fn clone(&self) -> Self {
+        let mut new_vec = DosVec::<T>::new(self.reserved_len);
+        new_vec.len = self.len;
+        for i in 0..self.len {
+            unsafe { *new_vec.buf_ptr.add(i) = (*self.buf_ptr.add(i)).clone() };
+        }
+        new_vec
+    }
+}
+
+impl<T> DosVec<T> {
+    pub fn push(&mut self, value: T) {
+        unsafe {
+            if self.len >= self.reserved_len {
+                println("Not enough space, growing");
+                self.grow(GROW_COUNT);
+            }
+
+            *self.buf_ptr.add(self.len) = value;
+            self.len += 1;
+        }
+    }
+}
+
+impl<T> Drop for DosVec<T> {
+    fn drop(&mut self) {
+        unsafe {
+            // debug("Dropping vec, ptr: ", self.mem_chunk as i32);
+            if self.mem_chunk == null_mut() {
+                return
+            }
+            self.clear();
         }
     }
 }
