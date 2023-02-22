@@ -30,15 +30,15 @@ pub unsafe extern "C" fn start() {
     // args.print();
     // print_str("\"\n");
 
-    // let mut dos_vec = DosVec::<u8>::new(5);
-    // dos_vec.push('h' as u8);
-    // dos_vec.push('e' as u8);
-    // dos_vec.push('l' as u8);
-    // dos_vec.push('l' as u8);
+    let mut dos_vec = DosVec::<u8>::new(5);
+    dos_vec.push('h' as u8);
+    dos_vec.push('e' as u8);
+    dos_vec.push('l' as u8);
+    dos_vec.push('l' as u8);
     let mut dos_vec2 = DosVec::<u8>::new(0);
-    // dos_vec.push('o' as u8);
-    // dos_vec.push(' ' as u8);
-    // dos_vec.push('!' as u8);
+    dos_vec.push('o' as u8);
+    dos_vec.push(' ' as u8);
+    dos_vec.push('!' as u8);
 
     dos_vec2.push('b' as u8);
     dos_vec2.push('y' as u8);
@@ -46,7 +46,7 @@ pub unsafe extern "C" fn start() {
     dos_vec2.push('!' as u8);
 
     print_str("vec len: ");
-    print_num(dos_vec2.get_len() as i32);
+    print_num(dos_vec.get_len() as i32);
     println();
 
     let dv_len = dos_vec2.get_len();

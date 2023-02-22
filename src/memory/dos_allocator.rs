@@ -34,6 +34,9 @@ pub static mut DOS_ALLOCATOR: DosAllocator<ALLOCATED_MEM_SIZE_BYTES> =
 
 impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     pub unsafe fn alloc(&mut self, size: usize) -> *mut u8 {
+        if size == 0 {
+            return null_mut();
+        }
         let mem_begin_ptr = self.memory.as_mut_ptr();
         let mut mem_ptr = mem_begin_ptr.clone();
 
@@ -89,6 +92,8 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     }
 
     pub unsafe fn realloc(&mut self, ptr: *mut u8, size: usize, new_size: usize) -> *mut u8 {
+        debug("Reallocing from: ", size as i32);
+        debug("to: ", new_size as i32);
         self.dealloc(ptr, size);
         let old_size = size;
 

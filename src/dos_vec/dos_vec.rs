@@ -1,6 +1,10 @@
 use core::mem::size_of;
 
-use crate::{memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk}, io::debug, panic::panic_exit};
+use crate::{
+    io::debug,
+    memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk},
+    panic::panic_exit,
+};
 
 pub const GROW_COUNT: usize = 10;
 
@@ -19,7 +23,7 @@ impl<T> DosVec<T> {
 
 impl<T> DosVec<T> {
     unsafe fn create_from_ptr(reserved_len: usize, ptr: *mut u8) -> Self {
-        if ptr.is_null() {
+        if reserved_len > 0 && ptr.is_null() {
             panic_exit("NO MEMORY FOR DOS VEC", 200);
         }
         let mem_chunk = ptr as *mut MemChunk;
@@ -30,6 +34,28 @@ impl<T> DosVec<T> {
             reserved_len,
             len: 0,
         }
+    }
+
+    unsafe fn grow(&mut self, extra_size: usize) {
+        let new_reserved_len = self.reserved_len + extra_size;
+        let size_of_T = size_of::<T>();
+
+        let new_ptr = if self.reserved_len > 0 {
+            DOS_ALLOCATOR.realloc(
+                self.mem_chunk as *mut u8,
+                self.reserved_len * size_of_T,
+                new_reserved_len * size_of_T,
+            )
+        } else {
+            DOS_ALLOCATOR.alloc(new_reserved_len * size_of_T)
+        };
+        if new_ptr.is_null() {
+            panic_exit("NO MEMORY FOR GROWING DOS VEC", 200);
+        }
+
+        self.mem_chunk = new_ptr as *mut MemChunk;
+        self.buf_ptr = new_ptr.add(size_of::<MemChunk>()) as *mut T;
+        self.reserved_len = new_reserved_len;
     }
 
     pub fn new(reserved_len: usize) -> Self {
@@ -43,21 +69,7 @@ impl<T> DosVec<T> {
     pub fn push(&mut self, value: T) {
         unsafe {
             if self.len >= self.reserved_len {
-                let size_of_T = size_of::<T>();
-                let new_reserved_len = self.reserved_len + GROW_COUNT;
-                
-                let new_ptr = DOS_ALLOCATOR.realloc(
-                    self.mem_chunk as *mut u8,
-                    self.reserved_len * size_of_T,
-                    new_reserved_len * size_of_T,
-                );
-                if new_ptr.is_null() {
-                    panic_exit("NO MEMORY FOR DOS VEC", 200);
-                }
-
-                self.mem_chunk = new_ptr as *mut MemChunk;
-                self.buf_ptr = new_ptr.add(size_of::<MemChunk>()) as *mut T;
-                self.reserved_len = new_reserved_len;
+                self.grow(GROW_COUNT);
             }
 
             *self.buf_ptr.add(self.len) = value;
