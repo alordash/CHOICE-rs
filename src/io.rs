@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::string::{string_wrapper::StringWrapper, string::String};
+use crate::string::string::String;
 
 pub unsafe fn get_args_len() -> u8 {
     let args_count: u8;

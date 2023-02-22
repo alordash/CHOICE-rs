@@ -1,5 +1,6 @@
 #![no_main]
 #![no_std]
+#![allow(unused)]
 
 mod dos_vec;
 mod io;
@@ -7,11 +8,9 @@ mod memory;
 mod panic;
 mod string;
 
-use core::mem::size_of;
-
 use dos_vec::dos_vec::DosVec;
 use io::{debug, get_args_len, get_args_str, print_char, print_num, print_str, println};
-use memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk};
+use memory::{dos_allocator::DOS_ALLOCATOR};
 use panic::exit_with_code;
 
 #[no_mangle]

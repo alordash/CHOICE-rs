@@ -2,7 +2,6 @@ use core::arch::asm;
 use core::ops::Deref;
 
 use crate::dos_vec::dos_vec::DosVec;
-use crate::io::{print_char, print_str};
 
 pub struct String {
     vec: DosVec<u8>,
@@ -35,7 +34,7 @@ impl String {
 
     pub unsafe fn from_raw_parts(begin: *const u8, len: usize) -> Self {
         String {
-            vec: DosVec::from_raw_parts(begin, len)
+            vec: DosVec::from_raw_parts(begin, len),
         }
     }
 

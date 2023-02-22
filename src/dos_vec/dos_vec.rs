@@ -31,16 +31,16 @@ impl<T> DosVec<T> {
 
     unsafe fn grow(&mut self, extra_size: usize) {
         let new_reserved_len = self.reserved_len + extra_size;
-        let size_of_T = size_of::<T>();
+        let size_of_t = size_of::<T>();
 
         let new_ptr = if self.reserved_len > 0 {
             DOS_ALLOCATOR.realloc(
                 self.mem_chunk as *mut u8,
-                self.reserved_len * size_of_T,
-                new_reserved_len * size_of_T,
+                self.reserved_len * size_of_t,
+                new_reserved_len * size_of_t,
             )
         } else {
-            DOS_ALLOCATOR.alloc(new_reserved_len * size_of_T)
+            DOS_ALLOCATOR.alloc(new_reserved_len * size_of_t)
         };
         if new_ptr.is_null() {
             panic_exit("NO MEMORY FOR GROWING DOS VEC", 200);

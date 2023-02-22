@@ -1,7 +1,10 @@
 use core::mem::size_of;
 use core::ptr::null_mut;
 
-use crate::{io::{debug, println}, panic::panic_exit};
+use crate::{
+    io::{debug, println},
+    panic::panic_exit,
+};
 
 use super::memory_chunk::MemChunk;
 
@@ -13,10 +16,8 @@ pub struct DosAllocator<const MEM_SIZE_BYTES: usize> {
 
 impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     pub const fn alloc_memory() -> DosAllocator<MEM_SIZE_BYTES> {
-        unsafe {
-            let mut memory = [0x00; MEM_SIZE_BYTES];
-            DosAllocator { memory }
-        }
+        let memory = [0x00; MEM_SIZE_BYTES];
+        DosAllocator { memory }
     }
 
     pub fn zero_memory(&mut self) {
@@ -48,9 +49,11 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
             let mem_chunk = &*(mem_ptr as *const MemChunk);
             debug("Mem ptr: ", mem_ptr as i32);
             debug("Len: ", mem_chunk.get_len() as i32);
-            
+
             if mem_chunk.get_len() == 0 {
-                let left_space = MEM_SIZE_BYTES as isize - mem_ptr.offset_from(mem_begin_ptr) as isize - required_size as isize;
+                let left_space = MEM_SIZE_BYTES as isize
+                    - mem_ptr.offset_from(mem_begin_ptr) as isize
+                    - required_size as isize;
                 debug("Found empty chunk: ", mem_ptr as i32);
                 // debug("Left space: ", left_space as i32);
                 if left_space >= 0 {
