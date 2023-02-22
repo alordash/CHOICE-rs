@@ -1,6 +1,6 @@
 use core::mem::size_of;
 
-use crate::{memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk}, io::debug};
+use crate::{memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk}, io::debug, panic::panic_exit};
 
 pub const GROW_COUNT: usize = 10;
 
@@ -20,7 +20,7 @@ impl<T> DosVec<T> {
 impl<T> DosVec<T> {
     unsafe fn create_from_ptr(reserved_len: usize, ptr: *mut u8) -> Self {
         if ptr.is_null() {
-            // panic!("NO MEMORY FOR DOS VEC");
+            panic_exit("NO MEMORY FOR DOS VEC", 200);
         }
         let mem_chunk = ptr as *mut MemChunk;
         let buf_ptr = ptr.add(size_of::<MemChunk>()) as *mut T;
@@ -45,16 +45,14 @@ impl<T> DosVec<T> {
             if self.len >= self.reserved_len {
                 let size_of_T = size_of::<T>();
                 let new_reserved_len = self.reserved_len + GROW_COUNT;
-                debug("reserved_len: ", self.reserved_len as i32);
-                debug("new_reserved_len: ", new_reserved_len as i32);
-                debug("size_of_T: ", size_of_T as i32);
+                
                 let new_ptr = DOS_ALLOCATOR.realloc(
                     self.mem_chunk as *mut u8,
                     self.reserved_len * size_of_T,
                     new_reserved_len * size_of_T,
                 );
                 if new_ptr.is_null() {
-                    // panic!("NO MEMORY FOR DOS VEC");
+                    panic_exit("NO MEMORY FOR DOS VEC", 200);
                 }
 
                 self.mem_chunk = new_ptr as *mut MemChunk;

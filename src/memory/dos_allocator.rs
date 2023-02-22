@@ -2,7 +2,7 @@ use core::cell::UnsafeCell;
 use core::mem::size_of;
 use core::ptr::null_mut;
 
-use crate::io::{debug, print_num, print_str, println};
+use crate::{io::{debug, print_num, print_str, println}, panic::panic_exit};
 
 use super::memory_chunk::MemChunk;
 
@@ -37,21 +37,26 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let mem_begin_ptr = self.memory.as_mut_ptr();
         let mut mem_ptr = mem_begin_ptr.clone();
 
+        println();
         let required_size = size + size_of::<MemChunk>();
         debug("Required size: ", required_size as i32);
+        debug("Begin: ", mem_begin_ptr as i32);
 
         let suitable_mem_ptr = loop {
-            // debug("Mem ptr: ", mem_ptr as i32);
-            // debug("Mem ptr[0]: ", *mem_ptr as i32);
             let mem_chunk = &*(mem_ptr as *const MemChunk);
-            // debug("Mem chunk len: ", mem_chunk.get_len() as i32);
+            debug("Mem ptr: ", mem_ptr as i32);
+            debug("Len: ", mem_chunk.get_len() as i32);
+            
             if mem_chunk.get_len() == 0 {
-                if required_size < (MEM_SIZE_BYTES - mem_ptr.offset_from(mem_begin_ptr) as usize) {
+                let left_space = MEM_SIZE_BYTES as isize - mem_ptr.offset_from(mem_begin_ptr) as isize - required_size as isize;
+                debug("Found empty chunk: ", mem_ptr as i32);
+                debug("Left space: ", left_space as i32);
+                if left_space >= 0 {
                     break Some(mem_ptr);
                 }
                 return null_mut();
             }
-            mem_ptr = mem_ptr.add(mem_chunk.get_len());
+            mem_ptr = mem_ptr.add(mem_chunk.get_len() + size_of::<MemChunk>());
             if mem_ptr.offset_from(mem_begin_ptr) >= MEM_SIZE_BYTES as isize {
                 return null_mut();
             }
@@ -70,7 +75,7 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     pub unsafe fn dealloc(&mut self, ptr: *mut u8, size: usize) {
         let mem_chunk_ptr = ptr as *mut MemChunk;
         if (&*mem_chunk_ptr).get_len() != size {
-            // panic!("ERROR DEALLOCATING: WRONG SIZE");
+            panic_exit("ERROR DEALLOCATING: WRONG SIZE", 100);
         }
         *mem_chunk_ptr = MemChunk::new(0, ptr);
     }
