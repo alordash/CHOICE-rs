@@ -7,11 +7,11 @@ mod memory;
 mod panic;
 mod string;
 
-use core::{arch::asm, cell::UnsafeCell};
+use core::{arch::asm, cell::UnsafeCell, mem::size_of};
 
 use dos_vec::dos_vec::DosVec;
 use io::{debug, get_args_len, get_args_str, print_char, print_num, print_str, println};
-use memory::dos_allocator::DOS_ALLOCATOR;
+use memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk};
 use panic::exit_with_code;
 
 #[no_mangle]
@@ -55,8 +55,8 @@ pub unsafe extern "C" fn start() {
 
     let dv_len1 = dos_vec1.get_len();
 
-    for _ in 0..dv_len1 {
-        let c = *dos_vec1.pop().unwrap_unchecked();
+    for i in 0..dv_len1 {
+        let c = dos_vec1[i];
         print_char(c);
     }
 
@@ -64,17 +64,23 @@ pub unsafe extern "C" fn start() {
 
     let dv_len3 = dos_vec3.get_len();
 
-    for _ in 0..dv_len3 {
-        let c = *dos_vec3.pop().unwrap_unchecked();
+    for i in 0..dv_len3 {
+        let c = dos_vec3[i];
         print_char(c);
     }
 
     print_str("\nDone going through vec3!\n");
 
+    debug("Size of MemChunk: ", size_of::<MemChunk>() as i32);
+
     debug("vec1 len: ", dos_vec1.len as i32);
     debug("vec2 len: ", dos_vec2.len as i32);
     debug("vec3 len: ", dos_vec3.len as i32);
-    
+
+    debug("vec1 res: ", dos_vec1.reserved_len as i32);
+    debug("vec2 res: ", dos_vec2.reserved_len as i32);
+    debug("vec3 res: ", dos_vec3.reserved_len as i32);
+
     debug("vec1 ptr: ", dos_vec1.mem_chunk as i32);
     debug("vec2 ptr: ", dos_vec2.mem_chunk as i32);
     debug("vec3 ptr: ", dos_vec3.mem_chunk as i32);
