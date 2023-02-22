@@ -37,6 +37,16 @@ impl String {
             vec: DosVec::from_raw_parts(begin, len),
         }
     }
+    
+    pub fn from_vec(vec: &DosVec<u8>) -> Self {
+        let len = vec.get_len();
+        let mut string = String::instantiate(len);
+        for i in 0..len {
+            string.vec[i] = vec[i];
+        }
+        string.vec.len = len;
+        return string;
+    }
 
     pub fn print(&self) {
         unsafe {

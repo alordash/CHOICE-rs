@@ -40,21 +40,20 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let mem_begin_ptr = self.memory.as_mut_ptr();
         let mut mem_ptr = mem_begin_ptr.clone();
 
-        println();
         let required_size = size + size_of::<MemChunk>();
         // debug("Required size: ", required_size as i32);
-        debug("Begin: ", mem_begin_ptr as i32);
+        // debug("Begin: ", mem_begin_ptr as i32);
 
         let suitable_mem_ptr = loop {
             let mem_chunk = &*(mem_ptr as *const MemChunk);
-            debug("Mem ptr: ", mem_ptr as i32);
-            debug("Len: ", mem_chunk.get_len() as i32);
+            // debug("Mem ptr: ", mem_ptr as i32);
+            // debug("Len: ", mem_chunk.get_len() as i32);
 
             if mem_chunk.get_len() == 0 {
                 let left_space = MEM_SIZE_BYTES as isize
                     - mem_ptr.offset_from(mem_begin_ptr) as isize
                     - required_size as isize;
-                debug("Found empty chunk: ", mem_ptr as i32);
+                // debug("Found empty chunk: ", mem_ptr as i32);
                 // debug("Left space: ", left_space as i32);
                 if left_space >= 0 {
                     break Some(mem_ptr);
