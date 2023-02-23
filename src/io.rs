@@ -27,12 +27,12 @@ pub fn print_char(c: u8) {
         asm!(
             "int 21h",
             in("ah") 2_u8,
-            in("dl") c as u8
+            in("dl") c
         );
     }
 }
 
-pub fn print_num(mut num: i32) {
+pub fn print_num(mut num: i16) {
     if num == 0 {
         print_char('0' as u8);
         return;
@@ -49,9 +49,9 @@ pub fn print_num(mut num: i32) {
         len += 1;
     }
     for _ in 0..len {
-        let digit: i32;
+        let digit: i16;
         unsafe { asm!("pop {}", out(reg) digit) };
-        print_char((digit + '0' as i32) as u8);
+        print_char((digit + '0' as i16) as u8);
     }
 }
 
@@ -71,7 +71,7 @@ pub fn newline() {
     unsafe { print_char('\n' as u8) };
 }
 
-pub fn debug(s: &str, n: i32) {
+pub fn debug(s: &str, n: i16) {
     unsafe {
         print_str(s);
         print_num(n);

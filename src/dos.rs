@@ -39,7 +39,7 @@ pub fn set_wait_interval(millis: u32, byte_ptr: *mut u8) {
     }
 }
 
-pub fn get_stdin_status() -> u8 {
+pub fn is_stdin_has_chars() -> bool {
     unsafe {
         let al: u8;
         asm!(
@@ -47,25 +47,32 @@ pub fn get_stdin_status() -> u8 {
             in("ah") 0x0B_u8,
             out("al") al
         );
-        // debug("AL: ", al as i32);
-        return al;
+        return al == 0xFF_u8;
     }
 }
 
-pub fn direct_console_input() {
+pub fn try_get_char() -> Option<u16> {
     unsafe {
-        // let zf: u16;
         let al: u8;
+        let succesfully_read: u8;
         asm!(
             "int 21h",
-            // "xor bx, bx",
-            // "mov bx, zf",
+            "mov bl, 1",
+            "jz 1f",
+            "jnz 2f",
+            "1:",
+            "mov bl, 0",
+            "2:",
             in("ah") 0x06_u8,
             in("dl") 0xFF_u8,
-            // out("bx") zf,
-            out("al") al
+            out("al") al,
+            out("bl") succesfully_read
         );
-        // debug("zf: ", zf as i32);
-        debug("al: ", al as i32);
+        
+        if al != 0 {
+            Some(al as u16)
+        } else {
+            None
+        }
     }
 }

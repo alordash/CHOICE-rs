@@ -11,7 +11,7 @@ mod string;
 
 use core::mem::ManuallyDrop;
 
-use dos::{get_stdin_status, set_wait_interval, direct_console_input, wait};
+use dos::{set_wait_interval, try_get_char, wait};
 use dos_vec::dos_vec::DosVec;
 use io::{
     debug, get_args_len, get_args_str, newline, print_char, print_num, print_str, println,
@@ -22,25 +22,32 @@ use panic::exit_with_code;
 
 use crate::{io::println_bool, string::string::String};
 
-fn foo(f: impl Fn(i32) -> i32) -> i32 {
-    return f(10);
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn start() {
     DOS_ALLOCATOR.zero_memory();
 
+    wait(1000);
     // loop {
-    //     if get_stdin_status() > 0 {
-    //         direct_console_input();
-    //     }
+        let maybe_char = try_get_char();
+        // debug("maybe char: ", maybe_char as i16);
+        if let Some(c) = maybe_char {
+            // let v = c as i16;
+            // let char = maybe_char.unwrap_unchecked();
+
+            print_str("Got char: \'");
+            print_num(c as i16);
+            print_str("\'\n");
+        } else {
+            println("No chars");
+        }
     // }
+    return;
 
     let args_len = get_args_len();
     let args = get_args_str(args_len);
 
     print_str("Args len: ");
-    print_num(args_len as i32);
+    print_num(args_len as i16);
     newline();
 
     print_str("Arguments: \"");
@@ -61,23 +68,23 @@ pub unsafe extern "C" fn start() {
 
     let mut byte: u8 = 0;
 
-    debug("BEGIN byte: ", byte as i32);
+    debug("BEGIN byte: ", byte as i16);
     set_wait_interval(1000, &mut byte as *mut u8);
     // wait(1000);
-    debug("MID byte: ", byte as i32);
+    debug("MID byte: ", byte as i16);
 
     let read_str = read_string();
 
     let maybe_idx = words_split.find_idx(move |str| str == &read_str);
     if let Some(idx) = maybe_idx {
         print_str("Entered option #");
-        print_num(idx as i32);
+        print_num(idx as i16);
         newline();
     } else {
         println("Wrong option");
     }
 
-    debug("END byte: ", byte as i32);
+    debug("END byte: ", byte as i16);
 
     exit_with_code(args_len);
 }

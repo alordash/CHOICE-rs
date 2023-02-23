@@ -41,16 +41,16 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let mut mem_ptr = mem_begin_ptr.clone();
 
         let required_size = size + size_of::<MemChunk>();
-        // debug("Required len: ", size as i32);
-        // debug("Begin: ", mem_begin_ptr as i32);
+        // debug("Required len: ", size as i16);
+        // debug("Begin: ", mem_begin_ptr as i16);
 
         let suitable_mem_ptr = loop {
             let mem_chunk = &*(mem_ptr as *const MemChunk);
 
             // print_str("Mem ptr: ");
-            // print_num(mem_ptr as i32);
+            // print_num(mem_ptr as i16);
             // print_str(", len: ");
-            // print_num(mem_chunk.get_len() as i32);
+            // print_num(mem_chunk.get_len() as i16);
             // print_str(", occupied: ");
             // println_bool(mem_chunk.get_occupied());
 
@@ -60,8 +60,8 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
                 let left_space = MEM_SIZE_BYTES as isize
                     - mem_ptr.offset_from(mem_begin_ptr) as isize
                     - required_size as isize;
-                // debug("Found empty chunk: ", mem_ptr as i32);
-                // debug("Left space: ", left_space as i32);
+                // debug("Found empty chunk: ", mem_ptr as i16);
+                // debug("Left space: ", left_space as i16);
                 if left_space >= 0 {
                     break Some(mem_ptr);
                 }
@@ -82,7 +82,7 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let result_size = size.max(old_size);
         *suitable_mem_chunk = MemChunk::new(true, result_size, suitable_mem_ptr);
 
-        // debug("Found suitable mem ptr: ", suitable_mem_ptr as i32);
+        // debug("Found suitable mem ptr: ", suitable_mem_ptr as i16);
 
         return suitable_mem_ptr;
     }

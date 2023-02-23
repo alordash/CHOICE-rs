@@ -38,8 +38,8 @@ impl<T> DosVec<T> {
         let new_reserved_len = self.reserved_len + extra_size;
         let size_of_t = size_of::<T>();
 
-        // debug("current reserved_len: ", self.reserved_len as i32);
-        // debug("new     reserved_len: ", new_reserved_len as i32);
+        // debug("current reserved_len: ", self.reserved_len as i16);
+        // debug("new     reserved_len: ", new_reserved_len as i16);
         let new_ptr = if self.reserved_len > 0 {
             DOS_ALLOCATOR.realloc(
                 self.mem_chunk as *mut u8,
@@ -53,8 +53,8 @@ impl<T> DosVec<T> {
             panic_exit("NO MEMORY FOR GROWING DOS VEC", 200);
         }
 
-        // debug("Reallocated, new ptr: ", new_ptr as i32);
-        // debug("old ptr:              ", self.mem_chunk as i32);
+        // debug("Reallocated, new ptr: ", new_ptr as i16);
+        // debug("old ptr:              ", self.mem_chunk as i16);
         self.mem_chunk = new_ptr as *mut MemChunk;
         self.buf_ptr = new_ptr.add(size_of::<MemChunk>()) as *mut T;
         self.reserved_len = new_reserved_len;
@@ -72,7 +72,7 @@ impl<T> DosVec<T> {
     }
 
     pub fn clear(&mut self) {
-        // debug("Clearing vec, len: ", self.len as i32);
+        // debug("Clearing vec, len: ", self.len as i16);
         if self.len <= 0 {
             return;
         }
