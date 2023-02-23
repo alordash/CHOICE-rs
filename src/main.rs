@@ -27,7 +27,7 @@ use crate::{io::println_bool, string::string::String};
 const TIMEOUT_LITERAL: &'static str = "timeout=";
 const DEFAULT_LITERAL: &'static str = "default=";
 
-const DEFAULT_RESULT: u8 = 128;
+const DEFAULT_RESULT: u8 = 0;
 
 #[no_mangle]
 pub unsafe extern "C" fn start() {
@@ -46,7 +46,8 @@ pub unsafe extern "C" fn start() {
         if let Some(idx) = args.find_idx(|arg| arg.begins_with(&String::from_str(TIMEOUT_LITERAL)))
         {
             let timeout_str = &args[idx];
-            try_extract_i32_from_str_offset(&timeout_str, TIMEOUT_LITERAL.len()).map(|v| 1000 * v as u32)
+            try_extract_i32_from_str_offset(&timeout_str, TIMEOUT_LITERAL.len())
+                .map(|v| 1000 * v as u32)
         } else {
             None
         }
@@ -67,13 +68,16 @@ pub unsafe extern "C" fn start() {
         readline()
     };
 
-    let search_term = if input.get_len() == 0 { default } else { input };
+    let search_term = if input.get_len() == 0 { default } else { input.clone() };
     let result = args
         .find_idx(move |arg| arg == &search_term)
         .map(|v| v as u8)
         .or(Some(DEFAULT_RESULT))
         .unwrap_unchecked() as u8;
-    debug("Result: ", result as i16);
+    // print_str("Entered: \"");
+    // input.print();
+    // print_str("\"\n");
+    // debug("Result: ", result as i16);
 
     exit_with_code(result);
 }

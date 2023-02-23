@@ -157,7 +157,7 @@ pub fn try_get_char() -> Option<u16> {
             out("bl") succesfully_read
         );
         
-        if al != 0 {
+        if succesfully_read != 0 {
             Some(al as u16)
         } else {
             None
@@ -172,16 +172,22 @@ pub fn timed_readline(timeout_millis: u32) -> String {
         set_wait_interval(timeout_millis, timeout_byte_ptr);
         let mut str = String::empty();
 
+        let mut had_new_line = false;
+
         while timeout_byte == 0 {
             if let Some(c) = try_get_char() {
                 let c = c as u8;
-                
+                print_char(c);
                 if is_char_newline(c) {
+                    had_new_line = true;
                     stop_wait_interval(timeout_byte_ptr);
                     break;
                 }
                 str.push(c);
             }
+        }
+        if !had_new_line {
+            print_char('\n' as u8);
         }
         return str;
     }
