@@ -13,7 +13,7 @@ mod utils;
 use io::{get_args_len, get_args_str, readline, timed_readline};
 use memory::dos_allocator::DOS_ALLOCATOR;
 use panic::exit_with_code;
-use utils::try_extract_i32_from_str_offset;
+use utils::try_extract_num_from_str_offset;
 
 use crate::string::string::String;
 
@@ -39,8 +39,8 @@ pub unsafe extern "C" fn start() {
         if let Some(idx) = args.find_idx(|arg| arg.begins_with(&String::from_str(TIMEOUT_LITERAL)))
         {
             let timeout_str = &args[idx];
-            try_extract_i32_from_str_offset(&timeout_str, TIMEOUT_LITERAL.len())
-                .map(|v| 1000 * v as u32)
+            try_extract_num_from_str_offset(&timeout_str, TIMEOUT_LITERAL.len())
+                .map(|v| v as u32)
         } else {
             None
         }
@@ -56,7 +56,7 @@ pub unsafe extern "C" fn start() {
     };
 
     let input = if let Some(t) = timeout_seconds {
-        timed_readline(t)
+        timed_readline(1000 * t)
     } else {
         readline()
     };
@@ -64,7 +64,7 @@ pub unsafe extern "C" fn start() {
     let search_term = if input.get_len() == 0 {
         default
     } else {
-        input.clone()
+        input
     };
     let result = args
         .find_idx(move |arg| arg == &search_term)

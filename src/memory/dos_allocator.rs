@@ -39,18 +39,9 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let mut mem_ptr = mem_begin_ptr.clone();
 
         let required_size = size + size_of::<MemChunk>();
-        // debug("Required len: ", size as i16);
-        // debug("Begin: ", mem_begin_ptr as i16);
 
         let suitable_mem_ptr = loop {
             let mem_chunk = &*(mem_ptr as *const MemChunk);
-
-            // print_str("Mem ptr: ");
-            // print_num(mem_ptr as i16);
-            // print_str(", len: ");
-            // print_num(mem_chunk.get_len() as i16);
-            // print_str(", occupied: ");
-            // println_bool(mem_chunk.get_occupied());
 
             if !mem_chunk.get_occupied()
                 && (mem_chunk.get_len() >= size || mem_chunk.get_len() == 0)
@@ -58,8 +49,6 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
                 let left_space = MEM_SIZE_BYTES as isize
                     - mem_ptr.offset_from(mem_begin_ptr) as isize
                     - required_size as isize;
-                // debug("Found empty chunk: ", mem_ptr as i16);
-                // debug("Left space: ", left_space as i16);
                 if left_space >= 0 {
                     break Some(mem_ptr);
                 }
@@ -79,8 +68,6 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         let old_size = (&*suitable_mem_chunk).get_len();
         let result_size = size.max(old_size);
         *suitable_mem_chunk = MemChunk::new(true, result_size, suitable_mem_ptr);
-
-        // debug("Found suitable mem ptr: ", suitable_mem_ptr as i16);
 
         return suitable_mem_ptr;
     }
@@ -106,7 +93,6 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
     }
 
     pub unsafe fn realloc(&mut self, ptr: *mut u8, size: usize, new_size: usize) -> *mut u8 {
-        // println("Reallocing...");
         let old_size = size;
 
         let new_ptr = self.alloc(new_size);
@@ -114,10 +100,9 @@ impl<const MEM_SIZE_BYTES: usize> DosAllocator<MEM_SIZE_BYTES> {
         for offset in 0..old_size {
             *(new_ptr.add(offset + size_of::<MemChunk>())) =
                 *ptr.add(offset + size_of::<MemChunk>());
-            // *ptr.add(offset + size_of::<MemChunk>()) = 0;
         }
         self.dealloc(ptr, size);
-        // println("Done reallocing.");
+
         new_ptr
     }
 }
