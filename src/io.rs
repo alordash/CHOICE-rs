@@ -111,11 +111,15 @@ pub fn read_char() -> u8 {
     }
 }
 
+pub fn is_char_newline(c: u8) -> bool {
+    (c == ('\n' as u8)) || (c == ('\r' as u8))
+}
+
 pub fn readline() -> String {
     let mut str = String::empty();
     loop {
         let c = read_char();
-        if c == '\n' as u8 || c == '\r' as u8 {
+        if is_char_newline(c) {
             break;
         }
         str.push(c);
@@ -164,12 +168,19 @@ pub fn try_get_char() -> Option<u16> {
 pub fn timed_readline(timeout_millis: u32) -> String {
     unsafe {
         let mut timeout_byte: u8 = 0;
-        set_wait_interval(timeout_millis, &mut timeout_byte as *mut u8);
+        let timeout_byte_ptr = &mut timeout_byte as *mut u8;
+        set_wait_interval(timeout_millis, timeout_byte_ptr);
         let mut str = String::empty();
 
         while timeout_byte == 0 {
             if let Some(c) = try_get_char() {
-                str.push(c as u8);
+                let c = c as u8;
+                
+                if is_char_newline(c) {
+                    stop_wait_interval(timeout_byte_ptr);
+                    break;
+                }
+                str.push(c);
             }
         }
         return str;

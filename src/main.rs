@@ -8,6 +8,7 @@ mod io;
 mod memory;
 mod panic;
 mod string;
+mod utils;
 
 use core::mem::ManuallyDrop;
 
@@ -15,68 +16,64 @@ use dos::{set_wait_interval, wait};
 use dos_vec::dos_vec::DosVec;
 use io::{
     debug, get_args_len, get_args_str, newline, print_char, print_num, print_str, println,
-    read_char, readline, try_get_char, timed_readline, timed_try_get_char,
+    read_char, readline, timed_readline, timed_try_get_char, try_get_char,
 };
 use memory::dos_allocator::DOS_ALLOCATOR;
 use panic::exit_with_code;
+use utils::try_extract_i32_from_str_offset;
 
 use crate::{io::println_bool, string::string::String};
+
+const TIMEOUT_LITERAL: &'static str = "timeout=";
+const DEFAULT_LITERAL: &'static str = "default=";
+
+const DEFAULT_RESULT: u8 = 128;
 
 #[no_mangle]
 pub unsafe extern "C" fn start() {
     DOS_ALLOCATOR.zero_memory();
 
-    if let Some(c) = timed_try_get_char(1000) {
-        println("Got char:");
-        print_char(c as u8);
-    } else {
-        println("No b*tches");
-    }
-
-    return;
-
     let args_len = get_args_len();
-    let args = get_args_str(args_len);
+    let args_str = get_args_str(args_len);
 
-    print_str("Args len: ");
-    print_num(args_len as i16);
-    newline();
-
-    print_str("Arguments: \"");
-    args.print();
-    print_str("\"\n");
-
-    let mut words_split = args.split(|c: u8| c == ',' as u8 || c == ' ' as u8);
-    for i in 0..words_split.get_len() {
-        words_split[i].truncate(|c: u8| c == ' ' as u8 || c == ',' as u8);
+    let mut args = args_str.split(|c: u8| c == ',' as u8 || c == ' ' as u8);
+    for i in 0..args.get_len() {
+        args[i].truncate(|c: u8| c == ' ' as u8 || c == ',' as u8);
     }
-    words_split.remain_filtered(|str: &String| !str.is_empty());
+    args.remain_filtered(|str: &String| !str.is_empty());
 
-    print_str("Arguments split: \n");
-    for i in 0..words_split.get_len() {
-        words_split[i].print();
-        newline();
-    }
+    let timeout_seconds = {
+        if let Some(idx) = args.find_idx(|arg| arg.begins_with(&String::from_str(TIMEOUT_LITERAL)))
+        {
+            let timeout_str = &args[idx];
+            try_extract_i32_from_str_offset(&timeout_str, TIMEOUT_LITERAL.len()).map(|v| 1000 * v as u32)
+        } else {
+            None
+        }
+    };
 
-    let mut byte: u8 = 0;
-
-    debug("BEGIN byte: ", byte as i16);
-    set_wait_interval(1000, &mut byte as *mut u8);
-    // wait(1000);
-    debug("MID byte: ", byte as i16);
-
-    let read_str = readline();
-
-    let maybe_idx = words_split.find_idx(move |str| str == &read_str);
-    if let Some(idx) = maybe_idx {
-        print_str("Entered option #");
-        print_num(idx as i16);
-        newline();
+    let default = if let Some(idx) =
+        args.find_idx(|arg| arg.begins_with(&String::from_str(DEFAULT_LITERAL)))
+    {
+        let default_str = &args[idx];
+        default_str.substring(DEFAULT_LITERAL.len(), default_str.get_len())
     } else {
-        println("Wrong option");
-    }
+        String::empty()
+    };
 
-    debug("END byte: ", byte as i16);
+    let input = if let Some(t) = timeout_seconds {
+        timed_readline(t)
+    } else {
+        readline()
+    };
 
-    exit_with_code(args_len);
+    let search_term = if input.get_len() == 0 { default } else { input };
+    let result = args
+        .find_idx(move |arg| arg == &search_term)
+        .map(|v| v as u8)
+        .or(Some(DEFAULT_RESULT))
+        .unwrap_unchecked() as u8;
+    debug("Result: ", result as i16);
+
+    exit_with_code(result);
 }

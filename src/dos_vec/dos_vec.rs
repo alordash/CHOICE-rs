@@ -136,6 +136,20 @@ impl<T> DosVec<T> {
     }
 }
 
+impl<T: PartialEq + Eq> DosVec<T> {
+    pub fn begins_with(&self, other: &DosVec<T>) -> bool {
+        if self.len < other.len {
+            return false;
+        }
+        for i in 0..other.len {
+            if self[i] != other[i] {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
 impl<T: Copy> DosVec<T> {
     pub fn from_raw_parts(begin: *const T, len: usize) -> Self {
         unsafe {

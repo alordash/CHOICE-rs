@@ -137,4 +137,39 @@ impl String {
             }
         }
     }
+
+    pub fn try_to_i32(&self) -> Option<i32> {
+        fn is_char_num(c: u8) -> bool {
+            ('0' as u8..'9' as u8).contains(&c)
+        }
+        let mut num = 0i32;
+        let mut sign = 1i32;
+        let mut begin = 0;
+        for i in 0..self.get_len() {
+            let c = self[i];
+            if c == '-' as u8 {
+                sign *= -1;
+                begin = i + 1;
+            } else {
+                break;
+            }
+        }
+
+        for i in begin..self.get_len() {
+            let c = self[i];
+            if !is_char_num(c) {
+                return None;
+            }
+            num = num * 10 + (c - '0' as u8) as i32;
+        }
+        return Some(num * sign);
+    }
+
+    pub fn substring(&self, begin: usize, end: usize) -> String {
+        let len = end as isize - begin as isize;
+        if len <= 0 {
+            return String::empty();
+        }
+        unsafe { String::from_raw_parts(self.buf_ptr.add(begin), len as usize) }
+    }
 }
