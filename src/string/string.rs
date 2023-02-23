@@ -73,7 +73,7 @@ impl String {
                 in("ah") 0x40_u8,
                 in("bx") 0x01,
                 in("cx") self.vec.get_len(),
-                in("dx") self.vec.buf_ptr as u32,
+                in("dx") self.vec.buf_ptr as u16,
             )
         }
     }

@@ -2,6 +2,7 @@
 #![no_std]
 #![allow(unused)]
 
+mod dos;
 mod dos_vec;
 mod io;
 mod memory;
@@ -10,8 +11,12 @@ mod string;
 
 use core::mem::ManuallyDrop;
 
+use dos::{get_stdin_status, set_wait_interval, direct_console_input, wait};
 use dos_vec::dos_vec::DosVec;
-use io::{debug, get_args_len, get_args_str, newline, print_char, print_num, print_str, println, read_string, read_char};
+use io::{
+    debug, get_args_len, get_args_str, newline, print_char, print_num, print_str, println,
+    read_char, read_string,
+};
 use memory::dos_allocator::DOS_ALLOCATOR;
 use panic::exit_with_code;
 
@@ -24,6 +29,12 @@ fn foo(f: impl Fn(i32) -> i32) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn start() {
     DOS_ALLOCATOR.zero_memory();
+
+    // loop {
+    //     if get_stdin_status() > 0 {
+    //         direct_console_input();
+    //     }
+    // }
 
     let args_len = get_args_len();
     let args = get_args_str(args_len);
@@ -48,8 +59,15 @@ pub unsafe extern "C" fn start() {
         newline();
     }
 
+    let mut byte: u8 = 0;
+
+    debug("BEGIN byte: ", byte as i32);
+    set_wait_interval(1000, &mut byte as *mut u8);
+    // wait(1000);
+    debug("MID byte: ", byte as i32);
+
     let read_str = read_string();
-    
+
     let maybe_idx = words_split.find_idx(move |str| str == &read_str);
     if let Some(idx) = maybe_idx {
         print_str("Entered option #");
@@ -58,6 +76,8 @@ pub unsafe extern "C" fn start() {
     } else {
         println("Wrong option");
     }
+
+    debug("END byte: ", byte as i32);
 
     exit_with_code(args_len);
 }

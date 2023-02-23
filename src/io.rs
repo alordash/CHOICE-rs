@@ -62,7 +62,7 @@ pub fn print_str(s: &str) {
             in("bx") 0x01,
             in("ah") 0x40_u8,
             in("cx") s.len(),
-            in("dx") s.as_ptr() as u32,
+            in("dx") s.as_ptr() as u16,
         )
     }
 }
@@ -105,7 +105,7 @@ pub fn read_char() -> u8 {
             in("ah") 0x3f_u8,
             in("bx") 0x00,
             in("cx") 0x01,
-            in("dx") &c as *const u8 as i32
+            in("dx") &c as *const u8 as u16
         );
         return c;
     }
