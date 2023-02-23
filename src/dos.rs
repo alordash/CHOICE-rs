@@ -29,50 +29,15 @@ pub fn set_wait_interval(millis: u32, byte_ptr: *mut u8) {
             in("dx") dx,
             in("bx") byte_ptr as u16,
         );
-        // loop {
-        //     asm!("nop");
-        //     if *byte_ptr > 0 {
-        //         *byte_ptr = 0;
-        //         break;
-        //     }
-        // }
     }
 }
 
-pub fn is_stdin_has_chars() -> bool {
+pub fn stop_wait_interval(byte_ptr: *mut u8) {
     unsafe {
-        let al: u8;
+        *byte_ptr = 0;
         asm!(
-            "int 21h",
-            in("ah") 0x0B_u8,
-            out("al") al
+            "int 15h",
+            in("ax") 0x8301 as u16
         );
-        return al == 0xFF_u8;
-    }
-}
-
-pub fn try_get_char() -> Option<u16> {
-    unsafe {
-        let al: u8;
-        let succesfully_read: u8;
-        asm!(
-            "int 21h",
-            "mov bl, 1",
-            "jz 1f",
-            "jnz 2f",
-            "1:",
-            "mov bl, 0",
-            "2:",
-            in("ah") 0x06_u8,
-            in("dl") 0xFF_u8,
-            out("al") al,
-            out("bl") succesfully_read
-        );
-        
-        if al != 0 {
-            Some(al as u16)
-        } else {
-            None
-        }
     }
 }

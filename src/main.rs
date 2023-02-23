@@ -11,11 +11,11 @@ mod string;
 
 use core::mem::ManuallyDrop;
 
-use dos::{set_wait_interval, try_get_char, wait};
+use dos::{set_wait_interval, wait};
 use dos_vec::dos_vec::DosVec;
 use io::{
     debug, get_args_len, get_args_str, newline, print_char, print_num, print_str, println,
-    read_char, read_string,
+    read_char, readline, try_get_char, timed_readline, timed_try_get_char,
 };
 use memory::dos_allocator::DOS_ALLOCATOR;
 use panic::exit_with_code;
@@ -26,21 +26,13 @@ use crate::{io::println_bool, string::string::String};
 pub unsafe extern "C" fn start() {
     DOS_ALLOCATOR.zero_memory();
 
-    wait(1000);
-    // loop {
-        let maybe_char = try_get_char();
-        // debug("maybe char: ", maybe_char as i16);
-        if let Some(c) = maybe_char {
-            // let v = c as i16;
-            // let char = maybe_char.unwrap_unchecked();
+    if let Some(c) = timed_try_get_char(1000) {
+        println("Got char:");
+        print_char(c as u8);
+    } else {
+        println("No b*tches");
+    }
 
-            print_str("Got char: \'");
-            print_num(c as i16);
-            print_str("\'\n");
-        } else {
-            println("No chars");
-        }
-    // }
     return;
 
     let args_len = get_args_len();
@@ -73,7 +65,7 @@ pub unsafe extern "C" fn start() {
     // wait(1000);
     debug("MID byte: ", byte as i16);
 
-    let read_str = read_string();
+    let read_str = readline();
 
     let maybe_idx = words_split.find_idx(move |str| str == &read_str);
     if let Some(idx) = maybe_idx {

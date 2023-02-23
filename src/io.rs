@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::string::string::String;
+use crate::{string::string::String, dos::{set_wait_interval, stop_wait_interval}};
 
 pub unsafe fn get_args_len() -> u8 {
     let args_count: u8;
@@ -111,7 +111,7 @@ pub fn read_char() -> u8 {
     }
 }
 
-pub fn read_string() -> String {
+pub fn readline() -> String {
     let mut str = String::empty();
     loop {
         let c = read_char();
@@ -121,4 +121,74 @@ pub fn read_string() -> String {
         str.push(c);
     }
     return str;
+}
+
+pub fn is_stdin_has_chars() -> bool {
+    unsafe {
+        let al: u8;
+        asm!(
+            "int 21h",
+            in("ah") 0x0B_u8,
+            out("al") al
+        );
+        return al == 0xFF_u8;
+    }
+}
+
+pub fn try_get_char() -> Option<u16> {
+    unsafe {
+        let al: u8;
+        let succesfully_read: u8;
+        asm!(
+            "int 21h",
+            "mov bl, 1",
+            "jz 1f",
+            "jnz 2f",
+            "1:",
+            "mov bl, 0",
+            "2:",
+            in("ah") 0x06_u8,
+            in("dl") 0xFF_u8,
+            out("al") al,
+            out("bl") succesfully_read
+        );
+        
+        if al != 0 {
+            Some(al as u16)
+        } else {
+            None
+        }
+    }
+}
+
+pub fn timed_readline(timeout_millis: u32) -> String {
+    unsafe {
+        let mut timeout_byte: u8 = 0;
+        set_wait_interval(timeout_millis, &mut timeout_byte as *mut u8);
+        let mut str = String::empty();
+
+        while timeout_byte == 0 {
+            if let Some(c) = try_get_char() {
+                str.push(c as u8);
+            }
+        }
+        return str;
+    }
+}
+
+pub fn timed_try_get_char(timeout_millis: u32) -> Option<u16> {
+    unsafe {
+        let mut timeout_byte: u8 = 0;
+        let timeout_byte_ptr = &mut timeout_byte as *mut u8;
+        set_wait_interval(timeout_millis, timeout_byte_ptr);
+        let mut str = String::empty();
+
+        while timeout_byte == 0 {
+            if let Some(c) = try_get_char() {
+                stop_wait_interval(timeout_byte_ptr);
+                return Some(c);
+            }
+        }
+        return None;
+    }
 }
