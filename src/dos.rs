@@ -1,7 +1,5 @@
 use core::arch::asm;
 
-use crate::io::{debug, newline, print_char, print_num, print_str, println, println_bool};
-
 pub fn wait(millis: u32) {
     unsafe {
         let real_millis = millis * 1000;

@@ -1,10 +1,8 @@
 use core::mem::size_of;
 use core::ptr::null_mut;
 
-use crate::{
-    io::{debug, newline, println, print_str, println_bool, print_num},
-    panic::panic_exit,
-};
+use crate::io::println;
+use crate::panic::panic_exit;
 
 use super::memory_chunk::MemChunk;
 

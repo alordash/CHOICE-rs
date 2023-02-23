@@ -1,6 +1,9 @@
 use core::arch::asm;
 
-use crate::{string::string::String, dos::{set_wait_interval, stop_wait_interval}};
+use crate::{
+    dos::{set_wait_interval, stop_wait_interval},
+    string::string::String,
+};
 
 pub unsafe fn get_args_len() -> u8 {
     let args_count: u8;
@@ -68,33 +71,27 @@ pub fn print_str(s: &str) {
 }
 
 pub fn newline() {
-    unsafe { print_char('\n' as u8) };
+    print_char('\n' as u8);
 }
 
 pub fn debug(s: &str, n: i16) {
-    unsafe {
-        print_str(s);
-        print_num(n);
-        newline();
-    }
+    print_str(s);
+    print_num(n);
+    newline();
 }
 
 pub fn println(msg: &str) {
-    unsafe {
-        print_str(msg);
-        newline();
-    }
+    print_str(msg);
+    newline();
 }
 
 pub fn println_bool(f: bool) {
-    unsafe {
-        if f {
-            print_str("true");
-        } else {
-            print_str("false");
-        }
-        newline();
+    if f {
+        print_str("true");
+    } else {
+        print_str("false");
     }
+    newline();
 }
 
 pub fn read_char() -> u8 {
@@ -156,7 +153,7 @@ pub fn try_get_char() -> Option<u16> {
             out("al") al,
             out("bl") succesfully_read
         );
-        
+
         if succesfully_read != 0 {
             Some(al as u16)
         } else {
@@ -166,46 +163,41 @@ pub fn try_get_char() -> Option<u16> {
 }
 
 pub fn timed_readline(timeout_millis: u32) -> String {
-    unsafe {
-        let mut timeout_byte: u8 = 0;
-        let timeout_byte_ptr = &mut timeout_byte as *mut u8;
-        set_wait_interval(timeout_millis, timeout_byte_ptr);
-        let mut str = String::empty();
+    let mut timeout_byte: u8 = 0;
+    let timeout_byte_ptr = &mut timeout_byte as *mut u8;
+    set_wait_interval(timeout_millis, timeout_byte_ptr);
+    let mut str = String::empty();
 
-        let mut had_new_line = false;
+    let mut had_new_line = false;
 
-        while timeout_byte == 0 {
-            if let Some(c) = try_get_char() {
-                let c = c as u8;
-                print_char(c);
-                if is_char_newline(c) {
-                    had_new_line = true;
-                    stop_wait_interval(timeout_byte_ptr);
-                    break;
-                }
-                str.push(c);
+    while timeout_byte == 0 {
+        if let Some(c) = try_get_char() {
+            let c = c as u8;
+            print_char(c);
+            if is_char_newline(c) {
+                had_new_line = true;
+                stop_wait_interval(timeout_byte_ptr);
+                break;
             }
+            str.push(c);
         }
-        if !had_new_line {
-            print_char('\n' as u8);
-        }
-        return str;
     }
+    if !had_new_line {
+        print_char('\n' as u8);
+    }
+    return str;
 }
 
 pub fn timed_try_get_char(timeout_millis: u32) -> Option<u16> {
-    unsafe {
-        let mut timeout_byte: u8 = 0;
-        let timeout_byte_ptr = &mut timeout_byte as *mut u8;
-        set_wait_interval(timeout_millis, timeout_byte_ptr);
-        let mut str = String::empty();
+    let mut timeout_byte: u8 = 0;
+    let timeout_byte_ptr = &mut timeout_byte as *mut u8;
+    set_wait_interval(timeout_millis, timeout_byte_ptr);
 
-        while timeout_byte == 0 {
-            if let Some(c) = try_get_char() {
-                stop_wait_interval(timeout_byte_ptr);
-                return Some(c);
-            }
+    while timeout_byte == 0 {
+        if let Some(c) = try_get_char() {
+            stop_wait_interval(timeout_byte_ptr);
+            return Some(c);
         }
-        return None;
     }
+    return None;
 }

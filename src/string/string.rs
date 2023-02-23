@@ -2,7 +2,6 @@ use core::arch::asm;
 use core::ops::{Deref, DerefMut};
 
 use crate::dos_vec::dos_vec::DosVec;
-use crate::io::{debug, newline, print_str};
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct String {
@@ -132,9 +131,7 @@ impl String {
                 *self = String::from_raw_parts(self.buf_ptr.add(start), end - start);
             }
         } else {
-            unsafe {
-                *self = String::instantiate(0);
-            }
+            *self = String::instantiate(0);
         }
     }
 

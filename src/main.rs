@@ -1,6 +1,6 @@
 #![no_main]
 #![no_std]
-#![allow(unused)]
+// #![allow(unused)]
 
 mod dos;
 mod dos_vec;
@@ -10,19 +10,12 @@ mod panic;
 mod string;
 mod utils;
 
-use core::mem::ManuallyDrop;
-
-use dos::{set_wait_interval, wait};
-use dos_vec::dos_vec::DosVec;
-use io::{
-    debug, get_args_len, get_args_str, newline, print_char, print_num, print_str, println,
-    read_char, readline, timed_readline, timed_try_get_char, try_get_char,
-};
+use io::{get_args_len, get_args_str, readline, timed_readline};
 use memory::dos_allocator::DOS_ALLOCATOR;
 use panic::exit_with_code;
 use utils::try_extract_i32_from_str_offset;
 
-use crate::{io::println_bool, string::string::String};
+use crate::string::string::String;
 
 const TIMEOUT_LITERAL: &'static str = "timeout=";
 const DEFAULT_LITERAL: &'static str = "default=";
@@ -68,7 +61,11 @@ pub unsafe extern "C" fn start() {
         readline()
     };
 
-    let search_term = if input.get_len() == 0 { default } else { input.clone() };
+    let search_term = if input.get_len() == 0 {
+        default
+    } else {
+        input.clone()
+    };
     let result = args
         .find_idx(move |arg| arg == &search_term)
         .map(|v| v as u8)

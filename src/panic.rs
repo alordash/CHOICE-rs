@@ -20,6 +20,6 @@ pub unsafe fn panic_exit(err_msg: &str, exit_code: u8) -> ! {
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     // unsafe { print_str(_info.payload().downcast_ref::<&str>().unwrap()) };
-    unsafe { print_str("PANIC!!!$") };
+    print_str("PANIC!!!$");
     loop {}
 }

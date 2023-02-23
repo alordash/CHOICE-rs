@@ -1,10 +1,6 @@
-use core::{
-    mem::{size_of, ManuallyDrop},
-    ptr::null_mut,
-};
+use core::{mem::size_of, ptr::null_mut};
 
 use crate::{
-    io::{debug, newline, print_str, println},
     memory::{dos_allocator::DOS_ALLOCATOR, memory_chunk::MemChunk},
     panic::panic_exit,
 };
