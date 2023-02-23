@@ -1,6 +1,6 @@
 #![no_main]
 #![no_std]
-// #![allow(unused)]
+#![allow(unused)]
 
 mod dos;
 mod dos_vec;
